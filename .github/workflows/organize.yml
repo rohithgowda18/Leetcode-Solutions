@@ -2,6 +2,8 @@ name: Auto Organize LeetCode Solutions
 
 on:
   push:
+    branches:
+      - develop
     paths:
       - 'input-solutions/**'
   workflow_dispatch:
@@ -13,10 +15,11 @@ jobs:
   organize:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout repository (develop branch)
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: develop
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -29,14 +32,39 @@ jobs:
       - name: Run LeetCode Auto-Organizer
         run: npx tsx scripts/organize.ts --clean
 
-      - name: Commit and Push Organized Solutions
+      - name: Push Organized Solutions to main branch
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add .gitignore README.md dsa database input-solutions
+
+          # Temporarily stash the generated solution folders
+          mkdir /tmp/organized_solutions
+          if [ -d "dsa" ]; then cp -r dsa /tmp/organized_solutions/; fi
+          if [ -d "database" ]; then cp -r database /tmp/organized_solutions/; fi
+
+          # Switch to main branch
+          git fetch origin main
+          git checkout main
+
+          # Copy generated solutions into main
+          if [ -d "/tmp/organized_solutions/dsa" ]; then cp -r /tmp/organized_solutions/dsa/* dsa/ 2>/dev/null || cp -r /tmp/organized_solutions/dsa .; fi
+          if [ -d "/tmp/organized_solutions/database" ]; then cp -r /tmp/organized_solutions/database/* database/ 2>/dev/null || cp -r /tmp/organized_solutions/database .; fi
+
+          git add dsa database README.md
           if git diff --staged --quiet; then
-            echo "No changes to commit."
+            echo "No changes to commit on main."
           else
             git commit -m "Auto-organized LeetCode solutions [skip ci]"
-            git push
+            git push origin main
           fi
+
+          # Switch back to develop branch and clean input-solutions
+          git checkout develop
+          git add input-solutions/
+          if git diff --staged --quiet; then
+            echo "Develop input-solutions already clean."
+          else
+            git commit -m "Clean input-solutions after organizing [skip ci]"
+            git push origin develop
+          fi
+
