@@ -1,23 +1,26 @@
-# Dependencies
-node_modules/
+# Ignore local app source and scripts (keep GitHub clean with only solutions)
+src/
+server/
+server.ts
+scripts/
+input-solutions/
+metadata.json
+tsconfig.json
+vite.config.ts
+package.json
+package-lock.json
+index.html
 
-# Build artifacts
+# Dependencies & build
+node_modules/
 dist/
 dist-ssr/
 *.local
 
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
 # Environment & Cache
+data/
 .env
 .env.*
-!.env.example
-data/problems-cache.json
 
 # OS files
 .DS_Store
