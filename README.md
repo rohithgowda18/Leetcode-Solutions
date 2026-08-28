@@ -34,22 +34,24 @@ When you solve a problem on LeetCode in Java, save your code locally and use thi
 
 ## 3. Repository File Structure
 
-Organized solutions are stored in `leetcode-solutions/`:
+Organized solutions are stored in `dsa/` and `database/`:
 
 ```
-leetcode-solutions/
-├── 0001-two-sum/
-│   ├── README.md
-│   └── Solution.java
-├── 0002-add-two-numbers/
-│   ├── README.md
-│   └── Solution.java
-├── 0020-valid-parentheses/
-│   ├── README.md
-│   └── Solution.java
-└── 0121-best-time-to-buy-and-sell-stock/
-    ├── README.md
-    └── Solution.java
+.
+├── database/
+│   ├── 0180-consecutive-numbers/
+│   │   ├── README.md
+│   │   └── Solution.sql
+│   └── 0610-triangle-judgement/
+│       ├── README.md
+│       └── Solution.sql
+└── dsa/
+    ├── 0001-two-sum/
+    │   ├── README.md
+    │   └── Solution.java
+    └── 0207-course-schedule/
+        ├── README.md
+        └── Solution.java
 ```
 
 ### Example `README.md`:

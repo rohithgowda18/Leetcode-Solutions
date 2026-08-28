@@ -7,16 +7,12 @@ import { MOCK_PROBLEM_FIXTURES } from '../src/services/mockFixtures';
 
 const DATA_DIR = path.resolve(process.cwd(), 'data');
 const CACHE_FILE = path.join(DATA_DIR, 'problems-cache.json');
-const OUTPUT_DIR = path.resolve(process.cwd(), 'leetcode-solutions');
-const DSA_OUTPUT_DIR = path.join(OUTPUT_DIR, 'dsa');
-const DATABASE_OUTPUT_DIR = path.join(OUTPUT_DIR, 'database');
+const DSA_OUTPUT_DIR = path.resolve(process.cwd(), 'dsa');
+const DATABASE_OUTPUT_DIR = path.resolve(process.cwd(), 'database');
 
 // Ensure base directories exist
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-if (!fs.existsSync(OUTPUT_DIR)) {
-  fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 }
 if (!fs.existsSync(DSA_OUTPUT_DIR)) {
   fs.mkdirSync(DSA_OUTPUT_DIR, { recursive: true });
@@ -298,7 +294,7 @@ export async function saveSolution(params: {
     fs.writeFileSync(solutionPath, solutionContent, 'utf-8');
   }
 
-  const relPath = `leetcode-solutions/${category}/${folderName}`;
+  const relPath = `${category}/${folderName}`;
 
   return {
     folderName,
@@ -339,7 +335,7 @@ export function listOrganizedProblems() {
           difficulty: cached?.difficulty || 'Medium',
           category: cat,
           folderName: entry.name,
-          fullPath: `leetcode-solutions/${cat}/${entry.name}`,
+          fullPath: `${cat}/${entry.name}`,
           topics: cached?.topics || [],
           url: cached?.url || `https://leetcode.com/problems/${entry.name.replace(/^\d{4}-/, '')}/`,
           hasSolution,
@@ -351,32 +347,6 @@ export function listOrganizedProblems() {
 
   scanDirectory(DSA_OUTPUT_DIR, 'dsa');
   scanDirectory(DATABASE_OUTPUT_DIR, 'database');
-
-  // Also scan legacy root leetcode-solutions for any unmigrated folders
-  if (fs.existsSync(OUTPUT_DIR)) {
-    const entries = fs.readdirSync(OUTPUT_DIR, { withFileTypes: true });
-    for (const entry of entries) {
-      if (entry.isDirectory() && entry.name !== 'dsa' && entry.name !== 'database') {
-        const match = entry.name.match(/^(\d{4})-(.*)$/);
-        const problemNumber = match ? parseInt(match[1], 10) : 0;
-        const cached = diskCache[problemNumber] || MOCK_PROBLEM_FIXTURES[problemNumber];
-        const cat = cached?.category || 'dsa';
-        results.push({
-          problemNumber: problemNumber || 1,
-          title: cached?.title || entry.name.replace(/^\d{4}-/, '').replace(/-/g, ' '),
-          slug: cached?.slug || entry.name.replace(/^\d{4}-/, ''),
-          difficulty: cached?.difficulty || 'Medium',
-          category: cat,
-          folderName: entry.name,
-          fullPath: `leetcode-solutions/${entry.name}`,
-          topics: cached?.topics || [],
-          url: cached?.url || `https://leetcode.com/problems/${entry.name.replace(/^\d{4}-/, '')}/`,
-          hasSolution: true,
-          hasReadme: true,
-        });
-      }
-    }
-  }
 
   return results.sort((a, b) => a.problemNumber - b.problemNumber);
 }
@@ -392,14 +362,12 @@ export function getProblemContents(folderName: string, category?: string) {
   } else if (category === 'dsa') {
     targetDir = path.join(DSA_OUTPUT_DIR, folderName);
   } else {
-    // Search in dsa, database, and root
+    // Search in dsa and database
     const dsaPath = path.join(DSA_OUTPUT_DIR, folderName);
     const dbPath = path.join(DATABASE_OUTPUT_DIR, folderName);
-    const legacyPath = path.join(OUTPUT_DIR, folderName);
 
     if (fs.existsSync(dsaPath)) targetDir = dsaPath;
     else if (fs.existsSync(dbPath)) targetDir = dbPath;
-    else if (fs.existsSync(legacyPath)) targetDir = legacyPath;
   }
 
   if (!targetDir || !fs.existsSync(targetDir)) {
