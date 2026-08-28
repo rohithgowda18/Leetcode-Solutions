@@ -37,18 +37,23 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Temporarily stash the generated solution folders
-          mkdir /tmp/organized_solutions
+          # Temporarily copy the generated solution folders to a temp location
+          mkdir -p /tmp/organized_solutions
           if [ -d "dsa" ]; then cp -r dsa /tmp/organized_solutions/; fi
           if [ -d "database" ]; then cp -r database /tmp/organized_solutions/; fi
 
+          # Clean untracked/modified cache before switching branches
+          git checkout -- . || true
+          git clean -fd data/ || true
+
           # Switch to main branch
           git fetch origin main
-          git checkout main
+          git checkout -f main
 
           # Copy generated solutions into main
-          if [ -d "/tmp/organized_solutions/dsa" ]; then cp -r /tmp/organized_solutions/dsa/* dsa/ 2>/dev/null || cp -r /tmp/organized_solutions/dsa .; fi
-          if [ -d "/tmp/organized_solutions/database" ]; then cp -r /tmp/organized_solutions/database/* database/ 2>/dev/null || cp -r /tmp/organized_solutions/database .; fi
+          mkdir -p dsa database
+          if [ -d "/tmp/organized_solutions/dsa" ]; then cp -r /tmp/organized_solutions/dsa/* dsa/ 2>/dev/null || true; fi
+          if [ -d "/tmp/organized_solutions/database" ]; then cp -r /tmp/organized_solutions/database/* database/ 2>/dev/null || true; fi
 
           git add dsa database README.md
           if git diff --staged --quiet; then
@@ -58,8 +63,11 @@ jobs:
             git push origin main
           fi
 
-          # Switch back to develop branch and clean input-solutions
-          git checkout develop
+          # Switch back to develop branch and remove processed input-solutions
+          git checkout -f develop
+          if [ -d "input-solutions" ]; then
+            find input-solutions -type f ! -name ".gitkeep" -delete
+          fi
           git add input-solutions/
           if git diff --staged --quiet; then
             echo "Develop input-solutions already clean."
