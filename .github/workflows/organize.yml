@@ -15,41 +15,31 @@ jobs:
   organize:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout develop branch
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
           ref: develop
+          fetch-depth: 1
 
-      - name: Setup Node.js & Cache Dependencies
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit
+      - name: Install runner dependencies
+        run: npm i -g tsx --no-audit --no-fund
 
       - name: Run LeetCode Auto-Organizer
-        run: npx tsx scripts/organize.ts --clean
+        run: tsx scripts/organize.ts --clean
 
       - name: Push Organized Solutions to main branch
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Temporarily copy the generated solution folders to a temp location
+          # Copy generated solution folders to a temp location
           mkdir -p /tmp/organized_solutions
           if [ -d "dsa" ]; then cp -r dsa /tmp/organized_solutions/; fi
           if [ -d "database" ]; then cp -r database /tmp/organized_solutions/; fi
 
-          # Clean untracked/modified cache before switching branches
-          git checkout -- . || true
-          git clean -fd data/ || true
-
-          # Switch to main branch
-          git fetch origin main
-          git checkout -f main
+          # Fetch and checkout main branch
+          git fetch origin main --depth=1
+          git checkout -f -B main origin/main
 
           # Copy generated solutions into main
           mkdir -p dsa database
