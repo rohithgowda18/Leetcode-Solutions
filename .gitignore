@@ -1,4 +1,8 @@
-# Ignore frontend UI (keep develop branch minimal for automation only)
+# Output folders (managed on main branch only)
+dsa/
+database/
+
+# Ignore frontend UI & web server
 src/App.tsx
 src/index.css
 src/main.tsx
@@ -8,6 +12,8 @@ src/services/storageService.ts
 src/tests/
 index.html
 metadata.json
+server.ts
+vite.config.ts
 
 # Dependencies and build
 node_modules/
