@@ -1,4 +1,15 @@
-# Allow everything in develop/automation branch
+# Ignore frontend UI (keep develop branch minimal for automation only)
+src/App.tsx
+src/index.css
+src/main.tsx
+src/services/problemMetadataService.ts
+src/services/problemParser.ts
+src/services/storageService.ts
+src/tests/
+index.html
+metadata.json
+
+# Dependencies and build
 node_modules/
 dist/
 .env
