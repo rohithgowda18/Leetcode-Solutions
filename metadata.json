@@ -1,0 +1,7 @@
+{
+  "name": "LeetCode Solutions",
+  "description": "A minimal, personal local utility to quickly organize LeetCode Java solutions with automated problem metadata and clean Markdown READMEs for offline revision.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

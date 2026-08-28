@@ -1,27 +1,7 @@
-# Ignore local app source and scripts (keep GitHub clean with only solutions)
-src/
-server/
-server.ts
-scripts/
-input-solutions/
-metadata.json
-tsconfig.json
-vite.config.ts
-package.json
-package-lock.json
-index.html
-
-# Dependencies & build
+# Allow everything in develop/automation branch
 node_modules/
 dist/
-dist-ssr/
-*.local
-
-# Environment & Cache
-data/
 .env
 .env.*
-
-# OS files
 .DS_Store
 Thumbs.db
