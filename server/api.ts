@@ -279,15 +279,13 @@ export async function saveSolution(params: {
   const readmePath = path.join(targetDir, 'README.md');
   const solutionPath = path.join(targetDir, solFileName);
 
-  // Generate and write README.md if not exists or if category matches
-  if (!fs.existsSync(readmePath)) {
-    const readmeContent = generateReadme({
-      metadata,
-      category,
-      solutionFilename: solFileName,
-    });
-    fs.writeFileSync(readmePath, readmeContent, 'utf-8');
-  }
+  // Generate and write README.md
+  const readmeContent = generateReadme({
+    metadata,
+    category,
+    solutionFilename: solFileName,
+  });
+  fs.writeFileSync(readmePath, readmeContent, 'utf-8');
 
   // Write Solution file
   if (!fs.existsSync(solutionPath) || overwriteSolution) {

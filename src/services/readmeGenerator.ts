@@ -7,33 +7,35 @@ export interface ReadmeOptions {
 }
 
 /**
- * Generates clean, GitHub-ready README.md for LeetCode solutions.
+ * Generates authentic, LeetCode-styled README.md with badges, clean tags, and accurate problem UI layout.
  */
 export function generateReadme(options: ReadmeOptions): string {
   const { metadata, solutionFilename, category } = options;
   const sections: string[] = [];
 
-  // 1. Title
-  sections.push(`# ${metadata.number}. ${metadata.title}`);
+  // Difficulty badge colors
+  const diffColor =
+    metadata.difficulty === 'Easy' ? 'green' : metadata.difficulty === 'Medium' ? 'orange' : 'red';
+  const diffBadge = `![${metadata.difficulty}](https://img.shields.io/badge/Difficulty-${metadata.difficulty}-${diffColor}?style=for-the-badge)`;
+  const catBadge = `![Category](https://img.shields.io/badge/Category-${category === 'database' ? 'Database' : 'DSA'}-blue?style=for-the-badge)`;
 
-  // 2. Metadata info
-  const catBadge = category === 'database' ? 'Database' : 'DSA';
-  sections.push(`**Difficulty:** ${metadata.difficulty} | **Category:** ${catBadge}\n\n**LeetCode:** ${metadata.url}`);
+  // 1. Header with Badges
+  sections.push(`# [${metadata.number}. ${metadata.title}](${metadata.url})\n\n${diffBadge} ${catBadge}`);
 
-  // 3. Description
+  // 2. Problem Description
   const description = metadata.descriptionMarkdown?.trim() || 'No description available.';
-  sections.push(`## Description\n\n${description}`);
+  sections.push(description);
 
-  // 4. Topics (if available)
+  // 3. Topic Tags as badges or clean chips
   if (metadata.topics && metadata.topics.length > 0) {
-    const topicList = metadata.topics.map(t => `- ${t}`).join('\n');
-    sections.push(`## Topics\n\n${topicList}`);
+    const topicTags = metadata.topics.map(t => `\`${t}\``).join(' ');
+    sections.push(`**Related Topics:**  \n${topicTags}`);
   }
 
-  // 5. Solution reference
+  // 4. Solution Reference
   const solFile = solutionFilename || (category === 'database' ? 'Solution.sql' : 'Solution.java');
-  const solHeader = solFile.endsWith('.sql') ? 'SQL Solution' : solFile.endsWith('.java') ? 'Java Solution' : 'Solution';
-  sections.push(`## ${solHeader}\n\nSee \`${solFile}\`.`);
+  const solLang = solFile.endsWith('.sql') ? 'SQL' : solFile.endsWith('.java') ? 'Java' : 'Solution';
+  sections.push(`---\n\n### ${solLang} Solution\n\n- [\`${solFile}\`](./${solFile})`);
 
   return sections.join('\n\n') + '\n';
 }

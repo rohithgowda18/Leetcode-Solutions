@@ -1,10 +1,6 @@
-# 180. Consecutive Numbers
+# [180. Consecutive Numbers](https://leetcode.com/problems/consecutive-numbers/)
 
-**Difficulty:** Medium | **Category:** Database
-
-**LeetCode:** https://leetcode.com/problems/consecutive-numbers/
-
-## Description
+![Medium](https://img.shields.io/badge/Difficulty-Medium-orange?style=for-the-badge) ![Category](https://img.shields.io/badge/Category-Database-blue?style=for-the-badge)
 
 Table: `Logs`
 
@@ -25,7 +21,7 @@ Return the result table in **any order**.
 
 The result format is in the following example.
 
-### Example 1:
+**Example 1:**
 
 ```
 Input:
@@ -50,10 +46,11 @@ Output:
 Explanation: 1 is the only number that appears consecutively for at least three times.
 ```
 
-## Topics
+**Related Topics:**  
+`Database`
 
-- Database
+---
 
-## SQL Solution
+### SQL Solution
 
-See `Solution.sql`.
+- [`Solution.sql`](./Solution.sql)

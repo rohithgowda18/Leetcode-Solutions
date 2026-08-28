@@ -1,10 +1,6 @@
-# 610. Triangle Judgement
+# [610. Triangle Judgement](https://leetcode.com/problems/triangle-judgement/)
 
-**Difficulty:** Easy | **Category:** Database
-
-**LeetCode:** https://leetcode.com/problems/triangle-judgement/
-
-## Description
+![Easy](https://img.shields.io/badge/Difficulty-Easy-green?style=for-the-badge) ![Category](https://img.shields.io/badge/Category-Database-blue?style=for-the-badge)
 
 Table: `Triangle`
 
@@ -26,7 +22,7 @@ Return the result table in **any order**.
 
 The result format is in the following example.
 
-### Example 1:
+**Example 1:**
 
 ```
 Input:
@@ -46,10 +42,11 @@ Output:
 +----+----+----+----------+
 ```
 
-## Topics
+**Related Topics:**  
+`Database`
 
-- Database
+---
 
-## SQL Solution
+### SQL Solution
 
-See `Solution.sql`.
+- [`Solution.sql`](./Solution.sql)

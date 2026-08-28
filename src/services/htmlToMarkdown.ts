@@ -1,9 +1,7 @@
 /**
  * High-fidelity HTML to Markdown converter tailored for LeetCode problem descriptions.
- * Converts complex LeetCode problem markup (including constraints, examples, math, code blocks,
- * sub/sup, tables, and lists) into clean, GitHub-ready Markdown.
+ * Formats problem descriptions exactly like the LeetCode platform on GitHub.
  */
-
 export function convertHtmlToMarkdown(html: string): string {
   if (!html || typeof html !== 'string') {
     return '';
@@ -19,20 +17,20 @@ export function convertHtmlToMarkdown(html: string): string {
   text = text.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
   text = text.replace(/<!--[\s\S]*?-->/g, '');
 
-  // Handle LeetCode-specific Example headers (e.g. <strong class="example">Example 1:</strong>)
-  text = text.replace(/<strong class="example">\s*Example\s*(\d+):?\s*<\/strong>/gi, '\n\n### Example $1:\n\n');
-  text = text.replace(/<p><strong class="example">\s*Example\s*(\d+):?\s*<\/strong><\/p>/gi, '\n\n### Example $1:\n\n');
-  text = text.replace(/<p><strong>\s*Example\s*(\d+):?\s*<\/strong><\/p>/gi, '\n\n### Example $1:\n\n');
+  // Handle LeetCode Example headers with bold style
+  text = text.replace(/<p>\s*<strong class="example">\s*Example\s*(\d+):?\s*<\/strong>\s*<\/p>/gi, '\n\n<strong class="example">Example $1:</strong>\n\n');
+  text = text.replace(/<strong class="example">\s*Example\s*(\d+):?\s*<\/strong>/gi, '\n\n<strong class="example">Example $1:</strong>\n\n');
+  text = text.replace(/<p>\s*<strong>\s*Example\s*(\d+):?\s*<\/strong>\s*<\/p>/gi, '\n\n<strong class="example">Example $1:</strong>\n\n');
 
-  // Handle constraints headers
-  text = text.replace(/<p><strong class="example">\s*Constraints:?\s*<\/strong><\/p>/gi, '\n\n### Constraints:\n\n');
-  text = text.replace(/<p><strong>\s*Constraints:?\s*<\/strong><\/p>/gi, '\n\n### Constraints:\n\n');
-  text = text.replace(/<strong>\s*Constraints:?\s*<\/strong>/gi, '\n\n### Constraints:\n\n');
+  // Handle Constraints headers
+  text = text.replace(/<p>\s*<strong class="example">\s*Constraints:?\s*<\/strong>\s*<\/p>/gi, '\n\n**Constraints:**\n\n');
+  text = text.replace(/<p>\s*<strong>\s*Constraints:?\s*<\/strong>\s*<\/p>/gi, '\n\n**Constraints:**\n\n');
+  text = text.replace(/<strong>\s*Constraints:?\s*<\/strong>/gi, '\n\n**Constraints:**\n\n');
 
-  // Handle code blocks: <pre> ... </pre>
+  // Handle code blocks: <pre> ... </pre> (format with nice indentation)
   text = text.replace(/<pre[^>]*>([\s\S]*?)<\/pre>/gi, (_, codeContent) => {
-    // Strip inner HTML tags inside pre if any, but decode entities
-    const cleanCode = decodeHtmlEntities(codeContent.replace(/<[^>]+>/g, '')).trim();
+    // Strip tags but decode entities
+    let cleanCode = decodeHtmlEntities(codeContent.replace(/<[^>]+>/g, '')).trim();
     return `\n\n\`\`\`\n${cleanCode}\n\`\`\`\n\n`;
   });
 
@@ -42,16 +40,9 @@ export function convertHtmlToMarkdown(html: string): string {
 
   // Handle inline code: <code> ... </code>
   text = text.replace(/<code[^>]*>([\s\S]*?)<\/code>/gi, (_, codeContent) => {
-    // decode entities inside inline code
     const clean = decodeHtmlEntities(codeContent.replace(/<[^>]+>/g, '')).trim();
     return `\`${clean}\``;
   });
-
-  // Handle headings
-  text = text.replace(/<h1[^>]*>([\s\S]*?)<\/h1>/gi, '\n\n# $1\n\n');
-  text = text.replace(/<h2[^>]*>([\s\S]*?)<\/h2>/gi, '\n\n## $1\n\n');
-  text = text.replace(/<h3[^>]*>([\s\S]*?)<\/h3>/gi, '\n\n### $1\n\n');
-  text = text.replace(/<h4[^>]*>([\s\S]*?)<\/h4>/gi, '\n\n#### $1\n\n');
 
   // Handle strong/bold & em/italic
   text = text.replace(/<(?:strong|b)\b[^>]*>([\s\S]*?)<\/(?:strong|b)>/gi, '**$1**');
@@ -69,8 +60,8 @@ export function convertHtmlToMarkdown(html: string): string {
   text = text.replace(/<br\s*\/?>/gi, '\n');
   text = text.replace(/<p[^>]*>([\s\S]*?)<\/p>/gi, '\n\n$1\n\n');
 
-  // Remove any other remaining HTML tags
-  text = text.replace(/<[^>]+>/g, '');
+  // Remove any other remaining HTML tags (except standard img or allowed format tags)
+  text = text.replace(/<(?!\/?(img|sub|sup|strong|code)\b)[^>]+>/g, '');
 
   // Decode HTML entities
   text = decodeHtmlEntities(text);
@@ -100,15 +91,15 @@ export function decodeHtmlEntities(str: string): string {
     '&quot;': '"',
     '&#39;': "'",
     '&apos;': "'",
-    '&le;': '<=',
-    '&ge;': '>=',
+    '&le;': '≤',
+    '&ge;': '≥',
     '&minus;': '-',
-    '&times;': 'x',
+    '&times;': '×',
     '&plusmn;': '±',
     '&infin;': '∞',
-    '&ne;': '!=',
+    '&ne;': '≠',
     '&middot;': '·',
-    '&hellip;': '...',
+    '&hellip;': '…',
     '&bull;': '•',
     '&deg;': '°',
     '&#x27;': "'",
