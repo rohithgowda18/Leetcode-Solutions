@@ -229,23 +229,24 @@ export default function App() {
     setSubmitError(null);
     setSuccessInfo(null);
 
-    const validJavaFiles: File[] = [];
+    const validFiles: File[] = [];
     for (let i = 0; i < files.length; i++) {
-      if (files[i].name.toLowerCase().endsWith('.java')) {
-        validJavaFiles.push(files[i]);
+      const ext = files[i].name.toLowerCase();
+      if (ext.endsWith('.java') || ext.endsWith('.sql') || ext.endsWith('.py') || ext.endsWith('.cpp')) {
+        validFiles.push(files[i]);
       }
     }
 
-    if (validJavaFiles.length === 0) {
-      setSubmitError('Please select valid Java (.java) files.');
+    if (validFiles.length === 0) {
+      setSubmitError('Please select valid solution files (.java or .sql).');
       return;
     }
 
     // Process all files and extract problem numbers
     const newItems: FileQueueItem[] = [];
 
-    for (let i = 0; i < validJavaFiles.length; i++) {
-      const file = validJavaFiles[i];
+    for (let i = 0; i < validFiles.length; i++) {
+      const file = validFiles[i];
       const text = await file.text();
       const parsed = parseProblemFromFile(file.name, text);
 
@@ -262,11 +263,15 @@ export default function App() {
       });
     }
 
-    if (validJavaFiles.length === 1 && newItems[0].problemNumber) {
-      // If exactly 1 file was selected and number parsed, update the single editor
+    if (validFiles.length === 1) {
+      // If 1 file was uploaded, populate filename, code, and auto-extracted problem number
       setFileName(newItems[0].fileName);
       setSolutionCode(newItems[0].codeContent);
-      setProblemNumberInput(String(newItems[0].problemNumber));
+      if (newItems[0].problemNumber) {
+        setProblemNumberInput(String(newItems[0].problemNumber));
+      }
+      setFileQueue([]);
+      return;
     }
 
     setFileQueue(prev => [...prev, ...newItems]);
@@ -656,8 +661,8 @@ export default function App() {
                 </div>
               </div>
 
-              {/* VIEW 1: Multi-File Queue Table (when files are in queue) */}
-              {fileQueue.length > 0 ? (
+              {/* VIEW 1: Multi-File Queue Table (when >1 files are in queue) */}
+              {fileQueue.length > 1 ? (
                 <div className="space-y-4">
                   <div className="border border-neutral-800 rounded-xl overflow-hidden divide-y divide-neutral-800 bg-neutral-950">
                     {fileQueue.map((item, idx) => (
@@ -678,11 +683,6 @@ export default function App() {
                               {item.className && (
                                 <span className="bg-neutral-900 text-neutral-400 px-1.5 py-0.2 rounded text-[10px] font-mono border border-neutral-800">
                                   class {item.className}
-                                </span>
-                              )}
-                              {item.detectionSource && (
-                                <span className="text-[10px] text-amber-400/70 font-mono">
-                                  [{item.detectionSource.replace('_', ' ')}]
                                 </span>
                               )}
                             </div>
@@ -767,118 +767,107 @@ export default function App() {
                     onClick={() => fileInputRef.current?.click()}
                     className="border border-dashed border-neutral-800 hover:border-amber-500/40 rounded-xl p-3 text-center cursor-pointer transition-colors bg-neutral-950/40 text-xs text-neutral-500 hover:text-neutral-300"
                   >
-                    + Drop more .java files here or click to add
+                    + Drop more solution files here (.java / .sql) or click to add
                   </div>
                 </div>
               ) : (
-                /* VIEW 2: Single Problem Input Form & Editor */
+                /* VIEW 2: Clean Single Problem Input Flow */
                 <div className="space-y-5">
-                  {/* Problem Number Input */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
+                  {/* Step 1: Upload File or Problem Number */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {/* Problem Number Input */}
+                    <div className="sm:col-span-1 space-y-1.5">
                       <label
                         htmlFor="problem-number-input"
-                        className="text-sm font-semibold text-neutral-200 flex items-center gap-2"
+                        className="text-xs font-semibold text-neutral-300 flex items-center justify-between"
                       >
-                        <span>LeetCode Problem Number</span>
-                        <span className="text-xs font-normal text-neutral-500">
-                          (e.g., 1, 20, 121, 146)
-                        </span>
+                        <span>Problem #</span>
+                        {metadata && (
+                          <span className="text-[10px] text-amber-400">Detected</span>
+                        )}
                       </label>
-
-                      {metadata && (
-                        <button
-                          onClick={() =>
-                            fetchMetadata(parseInt(problemNumberInput, 10), true)
-                          }
-                          title="Refresh metadata from LeetCode"
-                          className="text-xs text-neutral-400 hover:text-amber-400 flex items-center gap-1 transition-colors"
-                        >
-                          <RefreshCw
-                            className={`w-3 h-3 ${
-                              loadingMeta ? 'animate-spin text-amber-400' : ''
-                            }`}
-                          />
-                          Refresh
-                        </button>
-                      )}
+                      <div className="relative">
+                        <input
+                          id="problem-number-input"
+                          type="number"
+                          min="1"
+                          placeholder="e.g. 1"
+                          value={problemNumberInput}
+                          onChange={e => setProblemNumberInput(e.target.value)}
+                          className="w-full bg-neutral-950 border border-neutral-800 focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/40 rounded-xl px-3.5 py-2.5 text-sm text-neutral-100 font-mono transition-all outline-none"
+                        />
+                        {loadingMeta && (
+                          <div className="absolute right-3 top-2.5">
+                            <RefreshCw className="w-4 h-4 text-amber-400 animate-spin" />
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    <div className="relative">
-                      <input
-                        id="problem-number-input"
-                        type="number"
-                        min="1"
-                        placeholder="1"
-                        value={problemNumberInput}
-                        onChange={e => setProblemNumberInput(e.target.value)}
-                        className="w-full bg-neutral-950 border border-neutral-800 focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/40 rounded-xl px-4 py-3 text-base text-neutral-100 font-mono transition-all outline-none"
-                      />
-                      {loadingMeta && (
-                        <div className="absolute right-3.5 top-3.5">
-                          <RefreshCw className="w-5 h-5 text-amber-400 animate-spin" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Metadata Preview Badge */}
-                    {metadata && (
-                      <div className="mt-3 p-3.5 bg-neutral-950/80 border border-neutral-800/80 rounded-xl flex flex-wrap items-center justify-between gap-3 text-xs">
-                        <div className="flex items-center gap-2.5">
-                          <span
-                            className={`px-2 py-0.5 rounded font-semibold text-[11px] ${
-                              metadata.difficulty === 'Easy'
-                                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                                : metadata.difficulty === 'Medium'
-                                ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                                : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
-                            }`}
-                          >
-                            {metadata.difficulty}
-                          </span>
-                          <span className="font-semibold text-neutral-200 text-sm">
-                            #{metadata.number}. {metadata.title}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          {metadata.topics?.slice(0, 3).map((topic, i) => (
+                    {/* Problem Name & Metadata (Auto-detected from file or number) */}
+                    <div className="sm:col-span-2 space-y-1.5">
+                      <label className="text-xs font-semibold text-neutral-300">
+                        Problem Name & Info
+                      </label>
+                      <div className="min-h-[42px] bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2 flex items-center justify-between gap-2">
+                        {metadata ? (
+                          <div className="flex items-center gap-2 min-w-0">
                             <span
-                              key={i}
-                              className="bg-neutral-900 text-neutral-400 px-2 py-0.5 rounded text-[11px] border border-neutral-800"
+                              className={`px-2 py-0.5 rounded font-bold text-[10px] shrink-0 ${
+                                metadata.difficulty === 'Easy'
+                                  ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                                  : metadata.difficulty === 'Medium'
+                                  ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                                  : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                              }`}
                             >
-                              {topic}
+                              {metadata.difficulty}
                             </span>
-                          ))}
+                            <span className="font-semibold text-neutral-200 text-xs truncate">
+                              #{metadata.number}. {metadata.title}
+                            </span>
+                          </div>
+                        ) : loadingMeta ? (
+                          <span className="text-xs text-neutral-500 flex items-center gap-1.5">
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-400" />
+                            Fetching problem details...
+                          </span>
+                        ) : (
+                          <span className="text-xs text-neutral-500">
+                            Enter problem # or upload file (e.g. 1.java, 610.sql)
+                          </span>
+                        )}
+
+                        {metadata && (
                           <a
                             href={metadata.url}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-neutral-400 hover:text-amber-400 p-1 transition-colors"
+                            className="text-neutral-400 hover:text-amber-400 p-1 transition-colors shrink-0"
                             title="View on LeetCode"
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
                           </a>
-                        </div>
+                        )}
                       </div>
-                    )}
-
-                    {metaError && (
-                      <p className="mt-2 text-xs text-rose-400 flex items-center gap-1.5">
-                        <AlertCircle className="w-3.5 h-3.5" />
-                        {metaError}
-                      </p>
-                    )}
+                    </div>
                   </div>
 
-                  {/* Java Solution Editor / Dropzone */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="text-sm font-semibold text-neutral-200 flex items-center gap-2">
-                        <FileCode2 className="w-4 h-4 text-amber-400" />
-                        <span>Java Solution Code</span>
-                        <span className="text-xs font-mono text-amber-400/80 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                          Solution.java
+                  {metaError && (
+                    <p className="text-xs text-rose-400 flex items-center gap-1.5">
+                      <AlertCircle className="w-3.5 h-3.5" />
+                      {metaError}
+                    </p>
+                  )}
+
+                  {/* Step 2: Solution Code Editor */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-semibold text-neutral-300 flex items-center gap-2">
+                        <FileCode2 className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Solution Code</span>
+                        <span className="text-[11px] font-mono text-amber-400/80 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                          {fileName}
                         </span>
                       </label>
 
@@ -888,7 +877,7 @@ export default function App() {
                         className="text-xs text-amber-400 hover:text-amber-300 font-medium flex items-center gap-1 transition-colors cursor-pointer"
                       >
                         <Upload className="w-3.5 h-3.5" />
-                        Select File(s)
+                        Upload Solution File
                       </button>
                     </div>
 
@@ -900,25 +889,13 @@ export default function App() {
                       }}
                       className="relative border border-neutral-800 rounded-xl overflow-hidden bg-neutral-950 focus-within:border-amber-500/60 focus-within:ring-1 focus-within:ring-amber-500/40 transition-all"
                     >
-                      <div className="bg-neutral-900/90 px-4 py-2 border-b border-neutral-800 flex items-center justify-between text-xs text-neutral-400">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full bg-amber-500/60 inline-block" />
-                          <span className="font-mono text-neutral-300 font-medium">
-                            {fileName}
-                          </span>
-                        </div>
-                        <span className="text-[11px] text-neutral-500">
-                          Drop one or multiple .java files
-                        </span>
-                      </div>
-
                       <textarea
                         id="solution-code-textarea"
                         value={solutionCode}
                         onChange={e => setSolutionCode(e.target.value)}
                         rows={11}
                         spellCheck={false}
-                        placeholder="Paste your Java Solution code here or select files..."
+                        placeholder="Paste your solution code here, or upload a .java / .sql file above..."
                         className="w-full bg-transparent p-4 font-mono text-xs sm:text-sm text-neutral-200 outline-none resize-y leading-relaxed"
                       />
                     </div>
@@ -934,7 +911,7 @@ export default function App() {
                 </div>
               )}
 
-              {/* Primary Action Button: 'ADD PROBLEM' / 'ADD PROBLEMS' */}
+              {/* Primary Action Button: 'UPLOAD & ORGANIZE' */}
               <button
                 id="add-problem-btn"
                 type="button"
@@ -954,15 +931,10 @@ export default function App() {
                     <RefreshCw className="w-4 h-4 animate-spin" />
                     <span>Organizing Problem...</span>
                   </>
-                ) : fileQueue.length > 1 ? (
-                  <>
-                    <Check className="w-4 h-4 stroke-[3]" />
-                    <span>ADD PROBLEMS ({fileQueue.length} FILES IN QUEUE)</span>
-                  </>
                 ) : (
                   <>
                     <Check className="w-4 h-4 stroke-[3]" />
-                    <span>ADD PROBLEM</span>
+                    <span>UPLOAD & ORGANIZE SOLUTION</span>
                   </>
                 )}
               </button>
