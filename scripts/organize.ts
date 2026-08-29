@@ -158,7 +158,16 @@ async function run() {
 
   console.log('\n🎉 Organization complete!');
 
-  // Handle Git workflow if --push flag is present
+  // Save dynamic commit message for GitHub Actions workflow
+  try {
+    const summaryMsg =
+      processedProblems.length === 1
+        ? `Add solution for ${processedProblems[0]}`
+        : `Add ${processedProblems.length} solutions: ${processedProblems.map(p => p.split(' ')[1]).join(', ')}`;
+    fs.writeFileSync('/tmp/commit_msg.txt', summaryMsg, 'utf-8');
+  } catch {
+    // ignore
+  }
   if (shouldPush) {
     console.log('\n🔄 Git automation started...');
     try {

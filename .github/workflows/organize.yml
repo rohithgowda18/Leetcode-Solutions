@@ -50,7 +50,11 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit on main."
           else
-            git commit -m "Auto-organized LeetCode solutions [skip ci]"
+            COMMIT_MSG="Auto-organized LeetCode solutions"
+            if [ -f "/tmp/commit_msg.txt" ]; then
+              COMMIT_MSG=$(cat /tmp/commit_msg.txt)
+            fi
+            git commit -m "$COMMIT_MSG [skip ci]"
             git push origin main
           fi
 
