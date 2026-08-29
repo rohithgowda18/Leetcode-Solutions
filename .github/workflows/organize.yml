@@ -28,7 +28,24 @@ jobs:
         run: tsx scripts/organize.ts --clean
 
       - name: Push Organized Solutions to main branch
+        env:
+          # Fallback to GitHub actor context if git log context is not available
+          ACTOR_NAME: ${{ github.actor }}
+          ACTOR_EMAIL: ${{ github.actor }}@users.noreply.github.com
         run: |
+          # 1. Determine original author name & email from the triggering commit on develop
+          ORIGINAL_AUTHOR_NAME=$(git log -1 --format='%an')
+          ORIGINAL_AUTHOR_EMAIL=$(git log -1 --format='%ae')
+
+          # Fallback safely if empty
+          if [ -z "$ORIGINAL_AUTHOR_NAME" ]; then
+            ORIGINAL_AUTHOR_NAME="$ACTOR_NAME"
+          fi
+          if [ -z "$ORIGINAL_AUTHOR_EMAIL" ]; then
+            ORIGINAL_AUTHOR_EMAIL="$ACTOR_EMAIL"
+          fi
+
+          # 2. Configure committer as GitHub Actions bot and author as original trigger user
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
@@ -54,7 +71,10 @@ jobs:
             if [ -f "/tmp/commit_msg.txt" ]; then
               COMMIT_MSG=$(cat /tmp/commit_msg.txt)
             fi
-            git commit -m "$COMMIT_MSG [skip ci]"
+            # Commit with original author attribution preserving who uploaded the solution
+            git commit \
+              --author="$ORIGINAL_AUTHOR_NAME <$ORIGINAL_AUTHOR_EMAIL>" \
+              -m "$COMMIT_MSG [skip ci]"
             git push origin main
           fi
 
@@ -67,7 +87,9 @@ jobs:
           if git diff --staged --quiet; then
             echo "Develop input-solutions already clean."
           else
-            git commit -m "Clean input-solutions after organizing [skip ci]"
+            git commit \
+              --author="$ORIGINAL_AUTHOR_NAME <$ORIGINAL_AUTHOR_EMAIL>" \
+              -m "Clean input-solutions after organizing [skip ci]"
             git push origin develop
           fi
 
