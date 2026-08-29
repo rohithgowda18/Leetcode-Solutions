@@ -28,23 +28,9 @@ interface QueueItem {
 }
 
 export default function App() {
-  // Single mode state
-  const [problemNumber, setProblemNumber] = useState<string>('1');
-  const [solutionCode, setSolutionCode] = useState<string>(
-`class Solution {
-    public int[] twoSum(int[] nums, int target) {
-        Map<Integer, Integer> map = new HashMap<>();
-        for (int i = 0; i < nums.length; i++) {
-            int complement = target - nums[i];
-            if (map.containsKey(complement)) {
-                return new int[] { map.get(complement), i };
-            }
-            map.put(nums[i], i);
-        }
-        return new int[] {};
-    }
-}`
-  );
+  // Single mode state - empty by default
+  const [problemNumber, setProblemNumber] = useState<string>('');
+  const [solutionCode, setSolutionCode] = useState<string>('');
   const [fileName, setFileName] = useState<string>('Solution.java');
   const [metadata, setMetadata] = useState<ProblemMetadata | null>(null);
   const [loadingMeta, setLoadingMeta] = useState<boolean>(false);
