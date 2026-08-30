@@ -171,25 +171,32 @@ async function run() {
   if (shouldPush) {
     console.log('\n🔄 Git automation started...');
     try {
-      console.log('   👉 Running: git add .');
-      execSync('git add .', { stdio: 'inherit' });
-
       const commitMsg =
         processedProblems.length === 1
           ? `Add LeetCode solution: ${processedProblems[0]}`
           : `Add ${processedProblems.length} LeetCode solutions: ${processedProblems.map(p => p.split(' ')[1]).join(', ')}`;
 
-      console.log(`   👉 Running: git commit -m "${commitMsg}"`);
+      // Switch to main branch, copy dsa/database, commit and push to main
+      console.log('   👉 Switching to main branch...');
+      execSync('git checkout main', { stdio: 'inherit' });
+      execSync('git pull --rebase origin main', { stdio: 'inherit' });
+
+      console.log('   👉 Staging dsa/ and database/ folders on main...');
+      execSync('git add dsa database', { stdio: 'inherit' });
+
       try {
         execSync(`git commit -m "${commitMsg}"`, { stdio: 'inherit' });
+        console.log('   👉 Pushing organized solutions to origin main...');
+        execSync('git push origin main', { stdio: 'inherit' });
       } catch (commitErr: any) {
-        console.log('   ℹ️ Nothing new to commit or already up to date.');
+        console.log('   ℹ️ Nothing new to commit on main.');
       }
 
-      console.log('   👉 Running: git push');
-      execSync('git push', { stdio: 'inherit' });
+      // Switch back to develop branch
+      console.log('   👉 Switching back to develop branch...');
+      execSync('git checkout develop', { stdio: 'inherit' });
 
-      console.log('\n🚀 Successfully pushed to Git repository!');
+      console.log('\n🚀 Successfully organized and pushed to main branch!');
     } catch (gitErr: any) {
       console.error('\n❌ Git command failed:', gitErr.message);
     }
