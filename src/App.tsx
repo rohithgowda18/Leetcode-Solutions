@@ -51,12 +51,15 @@ export default function App() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch metadata for single mode
+  // Fetch metadata for single mode with debounce
   useEffect(() => {
     if (fileQueue.length === 0) {
       const num = parseInt(problemNumber.trim(), 10);
       if (!isNaN(num) && num > 0) {
-        fetchSingleMetadata(num);
+        const timer = setTimeout(() => {
+          fetchSingleMetadata(num);
+        }, 350);
+        return () => clearTimeout(timer);
       } else {
         setMetadata(null);
         setMetaError(null);
