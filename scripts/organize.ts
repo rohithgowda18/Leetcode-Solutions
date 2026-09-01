@@ -31,7 +31,9 @@ function findLooseSolutionFiles(searchDir: string, defaultCategory?: 'dsa' | 'da
     if (entry.isFile()) {
       const ext = path.extname(entry.name).toLowerCase();
       if (SUPPORTED_EXTENSIONS.includes(ext) && !entry.name.toLowerCase().startsWith('solution.')) {
-        const cat = defaultCategory || (ext === '.sql' ? 'database' : undefined);
+        // File extension ALWAYS takes priority: .sql is always database, .java is always dsa
+        const cat: 'dsa' | 'database' | undefined =
+          ext === '.sql' ? 'database' : ext === '.java' ? 'dsa' : defaultCategory;
         results.push({
           filePath: path.join(searchDir, entry.name),
           category: cat,
