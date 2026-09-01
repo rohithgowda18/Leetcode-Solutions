@@ -1,6 +1,6 @@
 # [197. Rising Temperature](https://leetcode.com/problems/rising-temperature/)
 
-![Easy](https://img.shields.io/badge/Difficulty-Easy-green?style=for-the-badge) ![Category](https://img.shields.io/badge/Category-DSA-blue?style=for-the-badge)
+![Easy](https://img.shields.io/badge/Difficulty-Easy-green?style=for-the-badge) ![Category](https://img.shields.io/badge/Category-Database-blue?style=for-the-badge)
 
 Table: `Weather`
 
