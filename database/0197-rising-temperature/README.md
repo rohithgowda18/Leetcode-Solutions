@@ -53,6 +53,12 @@ In 2015-01-04, the temperature was higher than the previous day (20 -> 30).
 
 ---
 
-### SQL Solution
+## 💻 Solution (SQL)
 
-- [`Solution.sql`](./Solution.sql)
+```sql
+# Write your MySQL query statement below
+select w1.id from Weather w1
+join weather w2 
+on datediff(w1.recorddate,w2.recorddate)=1 
+where  w1.temperature>w2.temperature
+```

@@ -37,6 +37,30 @@ There may exists other ways to achieve this answer too.
 
 ---
 
-### Java Solution
+## 💻 Solution (Java)
 
-- [`Solution.java`](./Solution.java)
+```java
+class Solution {
+    public int characterReplacement(String s, int k) {
+        
+        int[] freq=new int[26];
+        int left=0;
+        int maxfreq=0;
+        int ans=0;
+
+        for(int right=0;right<s.length();right++){
+            int i=s.charAt(right)-'A';
+            freq[i]++;
+
+            maxfreq=Math.max(freq[i],maxfreq);
+            while ((right - left + 1) - maxfreq > k) {
+                freq[s.charAt(left) - 'A']--;
+                left++;
+            }
+            ans = Math.max(ans, right - left + 1);
+        }
+
+        return ans;
+    }
+}
+```

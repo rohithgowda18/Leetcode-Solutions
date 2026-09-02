@@ -39,6 +39,20 @@ The multiples of `k = 5` are 5, 10, 15, 20... and the smallest multiple missing 
 
 ---
 
-### Java Solution
+## 💻 Solution (Java)
 
-- [`Solution.java`](./Solution.java)
+```java
+class Solution {
+    public int missingMultiple(int[] nums, int k) {
+        Set<Integer> set=new HashSet<>();
+
+        for(int n:nums){
+            if(n%k==0)set.add(n);
+        }
+
+        for(int num=k; ;num=num+k){
+            if(!set.contains(num))return num;
+        }
+    }
+}
+```

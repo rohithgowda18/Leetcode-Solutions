@@ -55,6 +55,12 @@ Return `true` if it is possible to construct such an array, otherwise, return `f
 
 ---
 
-### Java Solution
+## 💻 Solution (Java)
 
-- [`Solution.java`](./Solution.java)
+```java
+class Solution {
+    public boolean uniformArray(int[] nums1) {
+        return true;
+    }
+}
+```
