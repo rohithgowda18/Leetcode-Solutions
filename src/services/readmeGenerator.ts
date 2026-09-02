@@ -2,15 +2,16 @@ import { ProblemMetadata } from '../types';
 
 export interface ReadmeOptions {
   metadata: ProblemMetadata;
+  solutionCode?: string;
   solutionFilename?: string;
   category?: 'dsa' | 'database';
 }
 
 /**
- * Generates authentic, LeetCode-styled README.md with badges, clean tags, and accurate problem UI layout.
+ * Generates authentic, LeetCode-styled README.md with badges, clean tags, and the solution code embedded directly.
  */
 export function generateReadme(options: ReadmeOptions): string {
-  const { metadata, solutionFilename, category } = options;
+  const { metadata, solutionCode, solutionFilename, category } = options;
   const sections: string[] = [];
 
   // Difficulty badge colors
@@ -26,16 +27,20 @@ export function generateReadme(options: ReadmeOptions): string {
   const description = metadata.descriptionMarkdown?.trim() || 'No description available.';
   sections.push(description);
 
-  // 3. Topic Tags as badges or clean chips
+  // 3. Topic Tags as clean chips
   if (metadata.topics && metadata.topics.length > 0) {
     const topicTags = metadata.topics.map(t => `\`${t}\``).join(' ');
     sections.push(`**Related Topics:**  \n${topicTags}`);
   }
 
-  // 4. Solution Reference
-  const solFile = solutionFilename || (category === 'database' ? 'Solution.sql' : 'Solution.java');
-  const solLang = solFile.endsWith('.sql') ? 'SQL' : solFile.endsWith('.java') ? 'Java' : 'Solution';
-  sections.push(`---\n\n### ${solLang} Solution\n\n- [\`${solFile}\`](./${solFile})`);
+  // 4. Solution Section (Embedded Code Block)
+  const isSql = category === 'database' || solutionFilename?.endsWith('.sql');
+  const langLabel = isSql ? 'SQL' : 'Java';
+  const codeBlockLang = isSql ? 'sql' : 'java';
+
+  if (solutionCode && solutionCode.trim()) {
+    sections.push(`---\n\n## 💻 Solution (${langLabel})\n\n\`\`\`${codeBlockLang}\n${solutionCode.trim()}\n\`\`\``);
+  }
 
   return sections.join('\n\n') + '\n';
 }

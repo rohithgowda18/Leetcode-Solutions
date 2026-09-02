@@ -145,7 +145,7 @@ async function run() {
       });
 
       console.log(`   ✅ [${result.category.toUpperCase()}] Saved to: ${result.fullPath}`);
-      console.log(`   📄 Created: ${result.solutionPath} & README.md`);
+      console.log(`   📄 Created: ${result.readmePath} (with embedded solution code)`);
       processedProblems.push(`[${result.category.toUpperCase()}] #${problemNumber} ${result.metadata.title}`);
 
       // Clean up source loose file if --clean flag is present

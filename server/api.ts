@@ -274,17 +274,22 @@ export async function saveSolution(params: {
   const readmePath = path.join(targetDir, 'README.md');
   const solutionPath = path.join(targetDir, solFileName);
 
-  // Generate and write README.md
+  // Generate and write all-in-one README.md with embedded solution code
   const readmeContent = generateReadme({
     metadata,
     category,
+    solutionCode: solutionContent,
     solutionFilename: solFileName,
   });
   fs.writeFileSync(readmePath, readmeContent, 'utf-8');
 
-  // Write Solution file
-  if (!fs.existsSync(solutionPath) || overwriteSolution) {
-    fs.writeFileSync(solutionPath, solutionContent, 'utf-8');
+  // If a legacy Solution file existed in the folder, clean it up
+  if (fs.existsSync(solutionPath)) {
+    try {
+      fs.unlinkSync(solutionPath);
+    } catch {
+      // ignore
+    }
   }
 
   const relPath = `${category}/${folderName}`;
@@ -293,7 +298,6 @@ export async function saveSolution(params: {
     folderName,
     category,
     fullPath: relPath,
-    solutionPath: `${relPath}/${solFileName}`,
     readmePath: `${relPath}/README.md`,
     metadata,
   };
