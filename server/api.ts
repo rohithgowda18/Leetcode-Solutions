@@ -217,29 +217,18 @@ export function checkDuplicateProblem(problemNumber: number, explicitCategory?: 
   const category = explicitCategory || cachedMeta?.category || detectCategory(cachedMeta);
   const folderName = generateFolderName(num, cachedMeta?.slug, cachedMeta?.title);
 
-  // Check in specific category dir and fallback to root/both
+  // Check in specific category dir for .md file or legacy folder
   const catDir = category === 'database' ? DATABASE_OUTPUT_DIR : DSA_OUTPUT_DIR;
-  const targetDir = path.join(catDir, folderName);
+  const mdFile = path.join(catDir, `${folderName}.md`);
+  const legacyDir = path.join(catDir, folderName);
 
-  if (!fs.existsSync(targetDir)) {
-    return {
-      folderExists: false,
-      folderName,
-      solutionFileExists: false,
-      existingFiles: [],
-      problemTitle: cachedMeta?.title,
-      category,
-    };
-  }
-
-  const existingFiles = fs.readdirSync(targetDir);
-  const solutionFileExists = existingFiles.some(f => f.toLowerCase().startsWith('solution.'));
+  const exists = fs.existsSync(mdFile) || fs.existsSync(legacyDir);
 
   return {
-    folderExists: true,
+    folderExists: exists,
     folderName,
-    solutionFileExists,
-    existingFiles,
+    solutionFileExists: exists,
+    existingFiles: exists ? [`${folderName}.md`] : [],
     problemTitle: cachedMeta?.title,
     category,
   };
@@ -262,43 +251,41 @@ export async function saveSolution(params: {
   const category = params.category || detectCategory(metadata, solutionContent, filename);
   metadata.category = category;
 
-  const folderName = generateFolderName(problemNumber, metadata.slug, metadata.title);
+  const baseFileName = generateFolderName(problemNumber, metadata.slug, metadata.title);
   const baseDir = category === 'database' ? DATABASE_OUTPUT_DIR : DSA_OUTPUT_DIR;
-  const targetDir = path.join(baseDir, folderName);
-
-  if (!fs.existsSync(targetDir)) {
-    fs.mkdirSync(targetDir, { recursive: true });
+  
+  if (!fs.existsSync(baseDir)) {
+    fs.mkdirSync(baseDir, { recursive: true });
   }
 
-  const solFileName = filename || (category === 'database' ? 'Solution.sql' : 'Solution.java');
-  const readmePath = path.join(targetDir, 'README.md');
-  const solutionPath = path.join(targetDir, solFileName);
+  const mdFilePath = path.join(baseDir, `${baseFileName}.md`);
 
-  // Generate and write all-in-one README.md with embedded solution code
+  // Generate and write all-in-one .md file with embedded solution code
   const readmeContent = generateReadme({
     metadata,
     category,
     solutionCode: solutionContent,
-    solutionFilename: solFileName,
+    solutionFilename: filename,
   });
-  fs.writeFileSync(readmePath, readmeContent, 'utf-8');
+  fs.writeFileSync(mdFilePath, readmeContent, 'utf-8');
 
-  // If a legacy Solution file existed in the folder, clean it up
-  if (fs.existsSync(solutionPath)) {
+  // Clean up legacy subfolder if it existed
+  const legacyDir = path.join(baseDir, baseFileName);
+  if (fs.existsSync(legacyDir)) {
     try {
-      fs.unlinkSync(solutionPath);
+      fs.rmSync(legacyDir, { recursive: true, force: true });
     } catch {
       // ignore
     }
   }
 
-  const relPath = `${category}/${folderName}`;
+  const relPath = `${category}/${baseFileName}.md`;
 
   return {
-    folderName,
+    folderName: baseFileName,
     category,
     fullPath: relPath,
-    readmePath: `${relPath}/README.md`,
+    readmePath: relPath,
     metadata,
   };
 }
@@ -314,15 +301,28 @@ export function listOrganizedProblems() {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
 
     for (const entry of entries) {
-      if (entry.isDirectory()) {
+      if (entry.isFile() && entry.name.endsWith('.md')) {
+        const baseName = entry.name.replace(/\.md$/, '');
+        const match = baseName.match(/^(\d{4})-(.*)$/);
+        const problemNumber = match ? parseInt(match[1], 10) : 0;
+        const cached = diskCache[problemNumber] || MOCK_PROBLEM_FIXTURES[problemNumber];
+
+        results.push({
+          problemNumber: problemNumber || 1,
+          title: cached?.title || baseName.replace(/^\d{4}-/, '').replace(/-/g, ' '),
+          slug: cached?.slug || baseName.replace(/^\d{4}-/, ''),
+          difficulty: cached?.difficulty || 'Medium',
+          category: cat,
+          folderName: baseName,
+          fullPath: `${cat}/${entry.name}`,
+          topics: cached?.topics || [],
+          url: cached?.url || `https://leetcode.com/problems/${baseName.replace(/^\d{4}-/, '')}/`,
+          hasSolution: true,
+          hasReadme: true,
+        });
+      } else if (entry.isDirectory()) {
         const match = entry.name.match(/^(\d{4})-(.*)$/);
         const problemNumber = match ? parseInt(match[1], 10) : 0;
-        const folderPath = path.join(dir, entry.name);
-        const files = fs.readdirSync(folderPath);
-
-        const hasSolution = files.some(f => f.toLowerCase().startsWith('solution.'));
-        const hasReadme = files.some(f => f.toLowerCase() === 'readme.md');
-
         const cached = diskCache[problemNumber] || MOCK_PROBLEM_FIXTURES[problemNumber];
 
         results.push({
@@ -335,8 +335,8 @@ export function listOrganizedProblems() {
           fullPath: `${cat}/${entry.name}`,
           topics: cached?.topics || [],
           url: cached?.url || `https://leetcode.com/problems/${entry.name.replace(/^\d{4}-/, '')}/`,
-          hasSolution,
-          hasReadme,
+          hasSolution: true,
+          hasReadme: true,
         });
       }
     }
